@@ -1,0 +1,88 @@
+---
+title: "Assignment7"
+author: "Srishti Patil"
+date: "2024-11-21"
+output: html_document
+---
+1. Explain the output
+
+2. Run Residual Analysis
+
+3. Perform and Plot the forecast for the next five periods
+4. Show the accuracy of your ARIMA model
+
+```{r}
+library(fpp)
+library(fpp2)
+library(forecast)
+library(readxl)
+#importing dataset
+file_path <- "C:\\Users\\Srishti\\Desktop\\FALL24\\BF\\Assignment3\\Data_NewYork.xlsx"
+dataFile <- read_excel(file_path)
+head(dataFile)
+timeSeriesData <- ts(dataFile$UnemployedLF, start=c(1976, 1), frequency=12)
+plot(timeSeriesData)
+
+#Perform and Plot the forecast for the next five periods
+ndiffs(timeSeriesData)
+tsdisplay(timeSeriesData)
+timeseriesdiff1 <- diff(timeSeriesData, differences=1)
+plot(timeseriesdiff1)
+tsdisplay(timeseriesdiff1)
+auto_fit <- auto.arima(timeSeriesData, trace=TRUE, stepwise = FALSE)
+auto_fit
+attributes(auto_fit)
+plot(forecast(auto_fit,h=5,level=c(99.5)))
+```
+
+
+The best ARIMA model for the time series data was identifies as: ARIMA(0,1,2)(0,0,1)[12]. 
+Explanations:
+Model Components are ARIMA(0,1,2) which states:
+p=0: No autoregressive terms.
+d=1: Data is differenced once to achieve stationarity.
+q=2: Two moving average terms.
+
+Seasonal Component  are (0,0,1)[12] which states:
+P=0: No seasonal autoregressive terms.
+D=0: No seasonal differencing.
+Q=1: One seasonal MA term.
+[12]: Indicates seasonality occurs with a periodicity of 12.
+
+Coefficients
+The coefficients of the model are:
+ma1=0.358
+7: First-order moving average parameter.
+ma2=−0.0919: Second-order moving average parameter.
+sma1=−0.0655: Seasonal moving average parameter.
+
+The output states that the model accounts for short-term trends using the two MA terms and one seasonal MA term and the seasonal patterns are identified based on the periodicity of 12.
+
+```{r}
+
+# Calculate the accuracy of the ARIMA model
+model_accuracy <- accuracy(auto_fit)
+print(model_accuracy)
+```
+We can see that RMSE and MAE are both low here. MAPE is very low which shows excellent relative accuracy. Hence, MAPE is the best in this case.
+
+```{r}
+#Run Residual Analysis
+Acf(auto_fit$residuals)
+Box.test(residuals(auto_fit), lag=20, type="Ljung")
+plot.ts(residuals(auto_fit))
+hist(auto_fit$residuals)
+tsdiag(auto_fit)
+
+```
+
+
+
+
+
+
+
+-The residuals show no significant autocorrelation (from the ACF plot), indicating that the model effectively captures the dynamics of the data.
+-The residuals are mostly random, with no visible trends or patterns in the time series plot.
+-The histogram indicates a near-normal distribution of errors.
+-The residuals' variance increases toward the later time periods, hinting at possible heteroscedasticity or the presence of outliers in specific periods.
